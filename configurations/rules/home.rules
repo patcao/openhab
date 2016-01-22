@@ -1,0 +1,6 @@
+rule "updateText"
+when
+	Item str_input changed
+then
+	postUpdate(str_input, "updated")
+end

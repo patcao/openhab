@@ -1,0 +1,37 @@
+sitemap home label="Home Controller"
+{
+	
+	Frame label="Info"{
+		//Current Date
+		Text item=currentTime label="Current Date [%1$tA, %1$th-%1$te-%1$tY]"
+		
+		//Current Time
+		Text item=currentTime label="Current Time [%1$tl:%1$tM %1$tp]"
+				    
+    	//Time of sunrise
+    	Text item=Sunrise_Time    	
+    	//Time of sunset
+    	Text item=Sunset_Time
+    	
+    	//Weather for Hicksville
+    	Text item=Hicksville_Temperature	
+	}
+	
+	Frame label="All Floors"{
+		//Group item=All label="All Floors" icon="groundfloor"
+		Text label="Floor One" icon="firstfloor" {
+			Frame label="First Floor"{			
+				Switch	item=desk_light_switch	label="Desk Light"
+		    	Slider item=desk_light_dimmer	visibility=[desk_light_switch==ON]	label="Desk Light Brightness"
+	    	}
+    	}
+    	    	    	
+    	Text item=str_input    
+    	
+    	
+	}
+	
+	Frame label="Second Floors"{
+		Text item=Sunset_Time
+	}
+}
