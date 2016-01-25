@@ -1,117 +1,78 @@
-# openhab-controlpanel
-A simple dashboard using the OpenHAB REST services.
+# Touch-based Dashboard for OpenHAB
 
-**GitHub users:** if you want to **fork** this project, take a look at the [advanced version](https://github.com/HomeAutomationForGeeks/openhab-controlpanel-advanced) instead. It has the config options in a separate file so you don't accidentally share your personal stuff.
+![Image of openHAB Dashboard](https://github.com/smar000/openhab-dashboard/blob/master/tmp/image.jpg)
 
-### See also
+This is a dashing (http://dashing.io/) based dashboard interface for OpenHAB (http://www.openhab.org), a superb open source home automation system.  It is a fork from FlorianZ's SmartThings dashboard (https://github.com/FlorianZ/hadashboard), basically replacing the SmartThings related calls to OpenHAB equivalents/work-arounds. For those interested, there is a great discussion on the SmartThings forum (link available in FlorianZ's github repo).
 
-http://www.homeautomationforgeeks.com/dashboard.shtml
+I have it running on wall-mounted Nexus 7's, providing a much easier UI for users in my home with quick access to the most commonly used items.
 
-## Table of Contents
+As I have never coded in Ruby and had never heard of *Batman.js* before this, the work here is for the most part a 'hatchet' job, but is at a point that it works for me. There is most certainly room for it to be tidied up and made more efficient!
 
-* [Screenshots](#screenshots)
-* [Features](#features)
-* [Installing Prerequisitesn](#installing-prerequisites)
-* [The Weather Underground API](#the-weather-underground-api)
-* [Installation](#installation)
-* [Included Dependencies](#included-dependencies)
-* [Full Screen Mode On Your Android Tablet](#full-screen-mode-on-your-android-tablet)
+When going through the installation details below, you may notice that I am not using server side push using the REST API on openHAB, but instead am using a rule within openHAB to trigger on changes in the underlying item states which then uses dashing's REST api to post data to the relevant dashing widget. The reason for this is because I could only get server side push to work for site-maps, and not for individual items or groups of items. This wasn't ideal for me, as I didn't want to have to keep adding items to site-maps just so they update to the dashing dashboard (plus it seems as if openHAB 2 will be moving to SSE's - thus there isn't enough incentive to spend the time on this further as it is working reliably for now). 
 
-## Screenshots
+You may also note that there is a CCTV related dashboard/widgets in the repository. This has nothing to do with openHAB and is a seperate system we use in our home. I have left it in as an example in case anyone is interested.
 
-### Example setup
+# Installation
+I'm assuming you know the basics of linux and are comfortable with simple installations etc. Everything here has been installed and is in daily use on an Ubuntu 14.10 server.
 
-![Example setup](https://github.com/HomeAutomationForGeeks/openhab-controlpanel/raw/master/screenshots/screenshot1.png)
+1. Install dashing (http://dashing.io) along with any related components it needs (it should do these automatically if you follow the instructions on their website, although some manual configuration may be necessary depending on what system you are running on and what you already have installed)
 
-### Running full screen on a cheap ($50) Android tablet
+2. Clone or download this dashboard repository into a local folder, e.g. */opt/dashboard*
 
-![Running on an Android tablet](https://github.com/HomeAutomationForGeeks/openhab-controlpanel/raw/master/screenshots/screenshot2.png)
+3. In the service folder of this repository, there is a start-up script you can use if you want to run dashing as a service. Modify the paths in this service file with anything that is different on your installation. On Ubuntu, this file can be placed in the */etc/init.d* folder with persmissions set at 755. You will also need to run *update-rc.d* if you want the service to start automatically at boot.
 
-## Features
+4. Edit the *lib/ohapp.rb* file, and make sure that your **openhab server name** and **port** are correctly specified
 
-* **Switches**: display the on/off status of switches (green = on) + tap to toggle them
-* **Open/close sensors**: display the open/close status of eg. a door sensor (red = open) + tap to view a log of recent entries
-* **Data sensors**: display sensor data + tap to view a log of recent data
-* **Weather data**: get up-to-date weather info from a nearby weather station
-* **Trash reminder**: on trash days, a trash icon appears as a reminder. On recycle days, a recycle icon appears
+5. Edit the file *config.ru* in the top level folder and change the **auth_token** value to whatever you want to use to authenticate communications between dashing and openHAB (or leave as is if you prefer!). You can also change the default dashboard here if you have multiple dashboards defined.
 
-## Installing Prerequisites
+6. Copy the rule file from the *dashboard/openhab_rule* folder into your openhab's rule folder (e.g. */opt/openhab/configurations/rules*). Edit the rule file and change the the **auth_token** here to whatever you set it in the previous step (or leave as is if you didn't make any changes in the previous step).
 
-### Raspberry Pi / Linux
 
-This dashboard was created on a Raspberry Pi 2 but can probably run on most systems with very little modification.
+# Configuring the Dashboard(s) 
 
-#### Apache
+1. First, on the OpenHAB side, in your items file, create a group called *gDashboard*
 
-To install Apache on your Raspberry Pi:
+2. Next, add all items that you want to use in your dashboard(s) to this new *gDashboard* group EXCEPT for the weather items (weather is updated through a 5 minute scheduler event as defined in the *jobs/openhab.rb* file)
 
-`sudo apt-get install apache2`
+3. If you want to use the dashboard's weather widget and have this updating from openHAB using the code as is, you will need to ensure that your weather items in openHAB are named as follows:
+    * Weather_Temperature
+    * Weather_Conditions
+    * Weather_Code
+    * Weather_Temp_Max_0
+    * Weather_Temp_Min_0
+    * Weather_Humidity
+    * Weather_Pressure
+    * Weather_Temp_Max_1
+    * Weather_Temp_Min_1
+    * Sunrise_Time
+    * Sunset_Time
+    * Weather_ObsTime
+    * Weather_Code_1
+    * Weather_Precipitation
+    * Weather_Precipitation_1
+    * Weather_Wind_Speed
+    * Weather_Wind_Direction
+    * Weather_Wind_Gust
 
-To check if Apache works, just browse to your Pi's IP address (eg. http://192.168.1.80). If Apache installed correctly, you'll see a page saying *"It works!"*.
+These are defined as in the Weather binding wiki for openHAB. If you do want to use different names, then edit the *lib/ohapp.rb* file accordingly.
 
-#### PHP
+General instructions on creating widgets and dashboards are given on the dashing website. In addition, and specifically for this openHAB setup, the main points to note are:
 
-If you enabled *persistence* in OpenHAB and want to be able to view logs, you also need to install PHP, and the MySQL PHP libraries:
+1. Each widget is defined in the dashboard file (e.g. the *dashboards/default.erb* file) using html list items (`<li>...</li>`). 
 
-`sudo apt-get install php5 libapache2-mod-php5`
+2. The widget is linked to a corresponding openHAB item via the **data-device** list item parameter. This must match exactly the item name in openHAB. (In the included dashboards, the **data-id** parameter mostly has the same value as the **data-device** paramater - this is not a requrement and has just been used this way for simplicity; the **data-id** is basically a unique ID for that specific widget on the dashboard).
 
-`sudo apt-get install php5-mysql`
+3. The **data-view** parameter of the list item specifies the type of widget. All the widget types available are in the widgets folder, and the openHAB specific ones are prefixed with 'Oh' - e.g. Ohdimmer, Ohswitch etc. **NOTE that not all of the widgets have been tested**. These have been taken from FlorianZ's original repo for SmartThings and kept here in case I have a future need. The only ones tested are those in the included dashboards.
 
-### The Weather Underground API
+4. Each page on the dashboard is put into an html DIV container with class="gridster".
 
-The weather bar uses the [Weather Underground API](http://www.wunderground.com/weather/api/) to get weather data. You can remove it if you don't want this. If you keep it, you'll need:
+# Android Tablet Specific Notes
+I have the android tablets switching off after a defined timeout period but automatically switching on as soon as it detects motion in front of the device (via its front-facing camera). This is done using two apps:
+* Tasker https://play.google.com/store/apps/details?id=net.dinglisch.android.taskerm
+* Motion Detector https://play.google.com/store/apps/details?id=org.motion.detector
 
-* A (free) Weather Underground API key
-* A weather station ID
+Both of these are paid apps. There may be other ways to achieve the same effect, but I have not explored them. A backup of the Tasker profile for this is included in the folder */opt/dashboard/tasker* (assuming you installed the dashboard in the */opt/dashboard* folder).
 
-#### Start by requesting an API key:
+In order to hide the top and bottom status bars on android, you can use the app GMD Fullscreen, https://play.google.com/store/apps/details?id=com.gmd.immersive. This is currently free.
 
-* Go to the [Weather Underground API](http://www.wunderground.com/weather/api/) and click the Sign Up button
-* Create an account, and activate it using the confirmation e-mail
-* Once you're logged in, you need to [request an API key](http://www.wunderground.com/weather/api/d/pricing.html): you can select the biggest (Anvil) plan and the history add-on: as long as you select the Developer option it will be $0.
-* Make a note of your API key.
-* Also note that the free key allows **500 calls per day**. By default, the weather refresh interval on the sample dashboard is every 10 minutes, which would make 144 calls per day. If you change it, make sure you don't go over your quota - or buy an upgrade plan.
-
-#### The next step is to find a weather station ID:
-
-* Go to the [Weather Underground home page](http://www.wunderground.com/).
-* Search for your location - it will take you to the weather detail page for a nearby station.
-  * Optional: change the default station to one closer to you by clicking on "Change Station".
-* Click on the weather station name - it's right under your location name.
-* On this page the station's ID will be right next to the station name - make a note of that ID.
-  * **Example:** if you search for "New York, New York", the default station is "Flatiron". If you click on Flatiron, the station's page lists the ID as "KNYNEWYO118". 
-  * The full URL is then *(including the "pws:" prefix for weather station codes)*: http://api.wunderground.com/api/YOUR_API_KEY_HERE/conditions/q/pws:KNYNEWYO118.json
-
-## Installation
-
-### Download the project files
-
-[Download the dashboard](https://github.com/HomeAutomationForGeeks/openhab-controlpanel/archive/master.zip) and unzip it to /var/www on your Pi. It won't work out of the box: you'll need to open **index.html** and look for all the places where it says **TODO**. That's where you need to change things like insert your weather API key and configure widgets.
-
-You'll probably want to look through the code to understand what's going on. There are comments explaining things throughout. 
-The main files are:
-
-* **index.html**: set up general configuration + add, remove and configure widgets ([HTML](http://www.w3schools.com/html/))
-* **js/dashboard.js**: main logic ([javascript](http://www.w3schools.com/js/)/[jQuery](https://jquery.com/))
-* **css/style.css**: widget style ([CSS](http://www.w3schools.com/css/))
-* **data.php**: used to query the openhab logs in MySQL and return the last 6 entries as JSON ([PHP](http://www.w3schools.com/php/))
-
-There's also logging: you configure the amount of logging by changing the loggingLevel value in index.html. **To see the log output**, press F12 while in your browser and make sure the "console" tab is selected.
-
-## Included Dependencies
-
-* [JQuery](https://jquery.com/) v1.11.1
-* [JQuery Atmosphere](https://github.com/Atmosphere/atmosphere-javascript)
-* [Font Awesome](https://fortawesome.github.io/Font-Awesome/)
-
-## Full Screen Mode on your Android tablet
-
-If you're using an Android tablet as your screen, you'll want the browser to work in full screen mode so the various tool bars don't take up precious screen space.
-
-There are probably several ways to do it - here's one way:
-
-1. Install the [Chrome For Android browser](https://play.google.com/store/apps/details?id=com.android.chrome), or update it to the latest version (you need at least version 39).
-2. Browse to to your dashboard site, and once it's loaded open the Settings menu and click **"Add to homescreen"**. This will create a launcher icon, and allow it to start full-screen. If you're curious, [see here](https://developer.chrome.com/multidevice/android/installtohomescreen) for how that works.
-3. Install the [Immersive Mode](https://play.google.com/store/apps/details?id=com.gmd.immersive) app. Once installed open the app and have it start on boot.
-4. Open your dashboard site using the launcher icon you created earlier. The Chrome interface (address bar etc) should be hidden, but you can still see the Android notifications bar at the top and actions bar at the bottom.
-5. Slide down the Android notifications from the top, and select the right-most icon in the Immersive Mode notification. This should hide both bars - your dashboard is now the only thing visible on the tablet.
+Finally, on an Android device, you can get rid of the browser's tabs etc, by opening the dashboard in Chrome, and then saving it as a desktop app from Chrome's menu. 

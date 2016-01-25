@@ -3,9 +3,10 @@ Group floor1	(All)
 Group floor2	(All)
 Group Weather 	(All)
 Group Time		(All)
+Group gDashboard
 
 Switch desk_light_switch	"Desk Light"	(floor1)	{hue="2"}
-Dimmer desk_light_dimmer  	"Desk Light"  	(floor1)  	{hue="2;brightness;5"}
+Dimmer desk_light_dimmer  	"Desk Light"  	(floor1,gDashboard)  	{hue="2;brightness;5"}
 
 
 Number mqtt_input "State is: [%.1f]" <temperature> (All) {mqtt="<[broker:test/text:state:default]"}
@@ -15,12 +16,18 @@ String str_input "String: [%s]" (All) {mqtt="<[broker:test/string:state:default]
 //DateTime    Date    "Date [%1$tH:%1$tM %1$tA, %1$td.%1$tm.%1$tY]"   (Status)    { ntp="ntp=America/New_York:en_US" }
 
 DateTime currentTime		{ ntp="America/New_York:en_US" }
-Number Hicksville_Temperature "Outside Temperature [%.1f °F]"	(Weather) { http="<[http://weather.yahooapis.com/forecastrss?w=2420954&u=f:60000:XSLT(yahoo_weather_temperature.xsl)]" }
+Number Hicksville_Temperature "Outside Temperature [%.1f °F]" { http="<[http://weather.yahooapis.com/forecastrss?w=2420954&u=f:60000:XSLT(yahoo_weather_temperature.xsl)]" }
 
 // shows the sunrise
-DateTime Sunrise_Time  "Sunrise [%1$tl:%1$tM %1$tp  %1$th-%1$te-%1$tY]"  {astro="planet=sun, type=rise, property=start"}
-DateTime Sunset_Time  "Sunset [%1$tl:%1$tM %1$tp   %1$th-%1$te-%1$tY]"  {astro="planet=sun, type=set, property=start"}
+DateTime Sunrise_Time  "Sunrise [%1$tl:%1$tM %1$tp  %1$th-%1$te-%1$tY]" (Weather) {astro="planet=sun, type=rise, property=start"}
+DateTime Sunset_Time  "Sunset [%1$tl:%1$tM %1$tp   %1$th-%1$te-%1$tY]" (Weather) {astro="planet=sun, type=set, property=start"}
 
+Number Weather_Temperature (Weather) {weather="locationId=home, type=temperature, property=current, unit=fahrenheit"}
+String Weather_Conditions (Weather) {weather="locationId=home, type=condition, property=text"}
+Number   Weather_Temp_Min_0 (Weather) {weather="locationId=home, type=temperature, property=min, unit=fahrenheit"}
+Number   Weather_Temp_Max_0 (Weather) {weather="locationId=home, type=temperature, property=max, unit=fahrenheit"}
 
+Number Weather_Humidity (Weather) {weather="locationId=home, type=atmosphere, property=humidity"}
+Number Weather_Pressure (Weather) {weather="locationId=home, type=atmosphere, property=pressure"}
 
-
+Number Weather_Precipitation (Weather) {weather="locationId=home, type=precipitation, property=rain"}
