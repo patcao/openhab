@@ -19,6 +19,7 @@ sitemap home label="Home Controller"
 	
 	Frame label="All Floors"{
 		//Group item=All label="All Floors" icon="groundfloor"
+		/*
 		Text label="Floor One" icon="firstfloor" {
 			Frame label="First Floor"{			
 				Switch	item=desk_light_switch	label="Desk Light"
@@ -28,7 +29,17 @@ sitemap home label="Home Controller"
     	    	    	
     	Text item=str_input    
     	
+    	Switch item=ceiling_light_switch1 label="Ceiling Switch1"
+    	Switch item=ceiling_light_switch2 label="Ceiling Switch2"
+    	Switch  item=ceiling_light_switch 	label="Ceiling Switch"
+    	*/
     	
+    	Text item=Weather_Temp_Min_0
+    	Text item=Weather_Temp_Max_0
+    	
+    	Slider	item=ceiling_light_dimmer1	label="Desk Light"
+    	Slider	item=ceiling_light_dimmer2	label="Desk Light"    	
+    	Slider  item=ceiling_light_dimmer 	label="Ceiling Light Dimmer"
 	}
 	
 	Frame label="Second Floors"{

@@ -49,6 +49,17 @@ when
 	Item CH_Indoor_Temp received update or
 	Item CH_Target_Temp received update
 then
+end
+
+rule "Ceiling Light Dimmer"
+when	
+	Item ceiling_light received update
+then
+	logInfo("org.openhab", "dimmer state: " + ceiling_light.state.toString)
+	//logInfo("org.openhab", "command recv: " + receivedCommand)
+	sendCommand(ceiling_bulb1, ceiling_light.state)
+	sendCommand(ceiling_bulb2, ceiling_light.state)
+end
 
 
 rule "updateText"
@@ -56,4 +67,13 @@ when
 	Item str_input changed
 then
 	postUpdate(str_input, "updated")
+end
+
+
+
+rule "Initialize Values"
+when
+	System started
+then
+	//postUpdate(ceiling_light_dimmer, "0");
 end
