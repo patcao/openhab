@@ -27,75 +27,42 @@ class Dashing.SlideDimmer extends Dashing.ClickableWidget
   @accessor 'icon-style', ->
     if parseInt(@get('state')) >0 then 'dimmer-icon-on' else 'dimmer-icon-off' 
 
-  plusLevel: ->
-    newLevel = parseInt(@get('state'))+10
-    if newLevel > 100
-      newLevel = 100
-    else if newLevel < 0
-      newLevel = 0
-    @set 'state', newLevel
-    return @get('state')
-
-  minusLevel: ->
-    newLevel = parseInt(@get('state'))-10
-    if newLevel > 100
-      newLevel = 100
-    else if newLevel < 0
-      newLevel = 0
-    @set 'state', newLevel
-    return @get('state')
-
-  levelUp: ->
-    newLevel = @plusLevel()
-    $.post '/openhab/dispatch',
-      deviceId: @get('device'),
-      command: newLevel    
-
-  levelDown: ->
-    newLevel = @minusLevel()
-    $.post '/openhab/dispatch',
-      deviceId: @get('device'),
-      command: newLevel     
-
   toggleState: ->
-    newState = if @get('state') > 0  then '0' else '100'
-    @set 'state', newState
+    newState = if @get('state') > 0  then '0' else '100'    
+    @set 'state', newState       
     return newState
-
+  
+  postState: (val) ->
+    $.post '/openhab/dispatch',
+      deviceId: @get('device'),
+      command: val    
+    
   queryState: ->
    $.get '/openhab/dispatch',
       widgetId: @get('id'),
       deviceId: @get('device'),
       deviceType: 'switch'
       (data) =>
-        json = JSON.parse data
-        @set 'state', json.state
+        json = JSON.parse data        
+        @set 'state', level        
     
-  postState: ->
-    newState = @toggleState()
-    $.post '/openhab/dispatch',
-      deviceId: @get('device'),
-      command: newState     
-
   ready: ->
 
   onData: (data) ->
     debugger
+    	
+  onChange: (event) ->
+    newLevel = $(event.target).val()
+    @set 'state', newLevel
+    @postState( newLevel )
     
-  #$("#slider_id").change ->
-  #  s2 = $("#slider_id").val()
-  #  console.log "a"   	  
-  #  console.log s2  	
-
+  onInput: (event) ->
+    newLevel = $(event.target).val()
+    @set 'state', newLevel
+             
+  
   onClick: (event) ->
-   	if event.target.id == "slider_id"   	  	       
-      s2 = $("#slider_id").val()
-      console.log s2         	 
-      #console.log @get('slider_state')
-    else if event.target.id == "level-down"
-      @levelDown()
-    else if event.target.id == "level-up"
-      @levelUp()
-    else if event.target.id == "switch"
-      @postState()
+    if event.target.id == "switch"
+      newState = @toggleState()
+      @postState(newState)
     
